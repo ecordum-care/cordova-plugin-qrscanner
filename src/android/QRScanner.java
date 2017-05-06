@@ -27,6 +27,7 @@ import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.util.Log;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -508,6 +509,17 @@ public class QRScanner extends CordovaPlugin implements BarcodeCallback {
                         requestPermission(33);
                     }
                     else {
+                         if(isMeizu()){
+                            if(hasCameraPermission()){
+                                Log.e("camera","hasCameraPermission");
+                            }
+                            else{
+                                Log.e("camera","noCameraPermission");
+                                authorized = false;
+                                denied = false;
+                                callbackContext.error(QRScannerError.CAMERA_ACCESS_DENIED);
+                            }
+                        }
                         setupCamera(callbackContext);
                         if (!scanning)
                             getStatus(callbackContext);
@@ -790,4 +802,28 @@ public class QRScanner extends CordovaPlugin implements BarcodeCallback {
         currentCameraId = 0;
         getStatus(callbackContext);
     }
+    private boolean isMeizu(){
+        Log.e("camera","call isMeizu");
+        boolean ism = android.os.Build.BRAND.contains("Meizu") ;
+        if(ism)
+            Log.e("camera","is Meizu");
+        else
+            Log.e("camera","is not Meizu");
+        return ( ism ||  android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M);
+    }
+    private boolean hasCameraPermission(){
+        Camera mCamera = null;
+        try {
+            mCamera = Camera.open();
+            Camera.Parameters mParameters = mCamera.getParameters();
+            mCamera.setParameters(mParameters);
+        } catch (Exception e) {
+            return false;
+        }
+        if (mCamera != null) {
+            mCamera.release();
+        }
+        return true;
+    }
+   
 }
